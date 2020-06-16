@@ -86,6 +86,13 @@ body {
   background-color: #e0e0e0;
 }
 
+.btn--create-acount {
+  transition: all 2s ease-out;
+}
+
+.light-out {
+  filter: brightness(150%);
+}
 .alert {
   position: fixed;
   top: 0;

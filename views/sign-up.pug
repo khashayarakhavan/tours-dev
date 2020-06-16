@@ -1,0 +1,21 @@
+extends base
+
+block content
+  main.main
+    .login-form
+      h2.heading-secondary.ma-bt-lg Sign Up for your account
+      form.form.form--sign-up
+            .form__group
+              label.form__label(for='name') Please enter your name
+              input#name.form__input( placeholder='e.x. Reza Ahmadi', required)
+            .form__group
+              label.form__label(for='email') and your email
+              input#email.form__input(type='email', placeholder='RezaAhmadi@gmail.com', required)
+            .form__group
+              label.form__label(for='password') Password
+              input#password.form__input(type='password', placeholder='••••••••', required, minlength='8')
+            .form__group.ma-bt-lg
+              label.form__label(for='password-confirm') Confirm Password
+              input#password-confirm.form__input(type='password', placeholder='••••••••', required, minlength='8')
+            .form__group.right
+              button.btn.btn--small.btn--green.btn--create-acount Create Account
