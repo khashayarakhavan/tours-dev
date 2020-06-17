@@ -5,15 +5,16 @@ const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const factory = require('./handlerFactory');
 
-const multerStorage = multer.diskStorage({ // how to save files
-  destination: (req, file, cb) => { 
-    cb(null, 'public/img/users'); // no error / save in the preferred location
-  },
-  filename: (req, file, cb) => {
-    const ext = file.mimetype.split('/')[1]; // select file type using Mimetype value via file in multer middleware
-    cb(null, `user-${req.user.id}-${Date.now()}.${ext}`); // unique id by user id from Req and current Date to create a filename.
-  }
-});
+// const multerStorage = multer.diskStorage({ // how to save files
+//   destination: (req, file, cb) => { 
+//     cb(null, 'public/img/users'); // no error / save in the preferred location
+//   },
+//   filename: (req, file, cb) => {
+//     const ext = file.mimetype.split('/')[1]; // select file type using Mimetype value via file in multer middleware
+//     cb(null, `user-${req.user.id}-${Date.now()}.${ext}`); // unique id by user id from Req and current Date to create a filename.
+//   }
+// });
+const multerStorage = multer.memoryStorage(); // Store in memory buffer instead of hard disk to improve performance and accessibility in next middlewares.
 
 const multerFilter = (req, file, cb) => { // check if the file type is what we want.
   if (file.mimetype.startsWith('image')) { // if file type is image
@@ -27,14 +28,14 @@ const upload = multer({
   storage: multerStorage, // pass options object to multer / specify storage and filter.
   fileFilter: multerFilter
 });
-
+// Step-1 in Upload profile photo process
 exports.uploadUserPhoto = upload.single('photo'); // Upload only single files in the field `photo`
-// const multerStorage = multer.memoryStorage();
 
+// Step-2 in Upload profile photo process
 exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
-  if (!req.file) return next();
+  if (!req.file) return next(); // If there is no file attached to the request, just do nothing.
 
-  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`; // Define filename to later access it in saving DB 
 
   await sharp(req.file.buffer)
     .resize(500, 500)
@@ -45,7 +46,8 @@ exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   next();
 });
 
-const filterObj = (obj, ...allowedFields) => {
+// filter function to accept only allowed fields out of an object.
+const filterObj = (obj, ...allowedFields) => { 
   const newObj = {};
   Object.keys(obj).forEach(el => {
     if (allowedFields.includes(el)) newObj[el] = obj[el];
@@ -58,6 +60,11 @@ exports.getMe = (req, res, next) => {
   next();
 };
 
+//
+////
+/////
+//// Step-3 in Upload profile photo process.
+// Update Users' Data from client to DB save.
 exports.updateMe = catchAsync(async (req, res, next) => {
   
   console.log("Hello. This is BODY...!",req.body);
@@ -77,7 +84,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   const filteredBody = filterObj(req.body, 'name', 'email');
   if (req.file) filteredBody.photo = req.file.filename; // add `photo` field to filteredBody object which is then added to DB
 
-  // 3) Update user document by passing filteredBody along with user ID.
+  // 3) Save to database & Update user document by passing filteredBody along with user ID.
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
     runValidators: true

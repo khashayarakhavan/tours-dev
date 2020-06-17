@@ -8427,7 +8427,7 @@ var updateSettings = /*#__PURE__*/function () {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            console.log("Hello from updataData :D");
+            console.log("Hello from updataSettings :D");
             _context.prev = 1;
             url = type === 'password' ? 'http://localhost:3000/api/v1/users/updateMyPassword' : 'http://localhost:3000/api/v1/users/updateMe';
             _context.next = 5;
@@ -8767,12 +8767,17 @@ if (logOutBtn) {
 if (userDataForm) {
   userDataForm.addEventListener('submit', function (e) {
     e.preventDefault();
-    var name = document.getElementById('name').value;
-    var email = document.getElementById('email').value;
-    (0, _updateSettings.updateSettings)({
-      name: name,
-      email: email
-    }, 'data');
+    var form = new FormData(); // create a form-data bz we need should use multipart/form-data to send photos and files.
+
+    form.append('name', document.getElementById('name').value); // fill the first data in the form
+
+    form.append('email', document.getElementById('email').value); // fill the second data in the form
+
+    form.append('photo', document.getElementById('photo').files[0]); // files in input HTML element are stored in an array.
+    // this array is used here to access the first element `[0]` bz it is stricted to only accept 1 file in multer upload.Single() method
+
+    console.log(form);
+    (0, _updateSettings.updateSettings)(form, 'data'); // forms are treated just as JS objects so it can be a data.
   });
 }
 
@@ -8884,7 +8889,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61777" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65196" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

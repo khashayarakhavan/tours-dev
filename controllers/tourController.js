@@ -5,9 +5,9 @@ const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
 const AppError = require('./../utils/appError');
 
-const multerStorage = multer.memoryStorage();
+const multerStorage = multer.memoryStorage(); // Performance Improvemenet Note! Memory store instead of Hard Storages
 
-const multerFilter = (req, file, cb) => {
+const multerFilter = (req, file, cb) => { // filter only image mimeTypes
   if (file.mimetype.startsWith('image')) {
     cb(null, true);
   } else {
@@ -16,34 +16,42 @@ const multerFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage: multerStorage,
+  storage: multerStorage, // using RAM buffer
   fileFilter: multerFilter
 });
 
-exports.uploadTourImages = upload.fields([
+// upload.single('image') => req.file // single file upload.
+// upload.array('images',5) => req.files // multiple file upload.
+// -------------------
+// export middleware / mixed single&multiple files upload using `fields` method.
+exports.uploadTourImages = upload.fields([ // This middle ware puts the files into req.files.
   { name: 'imageCover', maxCount: 1 },
   { name: 'images', maxCount: 3 }
 ]);
 
-// upload.single('image') req.file
-// upload.array('images', 5) req.files
-
 exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  console.log(req.files);
+
   if (!req.files.imageCover || !req.files.images) return next();
 
-  // 1) Cover image
-  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+  // 1) Cover image Process
+
+  // const imageCoverFilename = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+  // req.body.imageCover = imageCoverFilename;
+  // refactor ==>
+  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`; // directly save imageCover into req.body instead of naming it and then 
+  
   await sharp(req.files.imageCover[0].buffer)
     .resize(2000, 1333)
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
     .toFile(`public/img/tours/${req.body.imageCover}`);
 
-  // 2) Images
-  req.body.images = [];
+  // 2) Tour Images Process
+  req.body.images = []; // our tour DB model needs images array in the req.body 
 
-  await Promise.all(
-    req.files.images.map(async (file, i) => {
+  await Promise.all( // wait for all loops to finish then go to next()
+    req.files.images.map(async (file, i) => { // use map to wait for all loops and then store them into an array
       const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
 
       await sharp(file.buffer)
@@ -52,10 +60,11 @@ exports.resizeTourImages = catchAsync(async (req, res, next) => {
         .jpeg({ quality: 90 })
         .toFile(`public/img/tours/${filename}`);
 
-      req.body.images.push(filename);
+      req.body.images.push(filename); // save filename in images array in request body/ then saved in UpdateOne() Method.
     })
   );
-
+  
+  console.log(req.body);
   next();
 });
 

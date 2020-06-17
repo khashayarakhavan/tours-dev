@@ -35,9 +35,14 @@ if (logOutBtn) {
 if (userDataForm) {
   userDataForm.addEventListener('submit', e => {
     e.preventDefault();
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    updateSettings({name, email}, 'data');
+    const form = new FormData(); // create a form-data bz we need should use multipart/form-data to send photos and files.
+    form.append('name', document.getElementById('name').value); // fill the first data in the form
+    form.append('email', document.getElementById('email').value); // fill the second data in the form
+    form.append('photo', document.getElementById('photo').files[0] ); // files in input HTML element are stored in an array.
+    // this array is used here to access the first element `[0]` bz it is stricted to only accept 1 file in multer upload.Single() method
+    console.log(form);
+
+    updateSettings(form, 'data'); // forms are treated just as JS objects so it can be a data.
   });
 }
 

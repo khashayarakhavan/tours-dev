@@ -50,12 +50,13 @@ module.exports = class Email {
       text: htmlToText.fromString(html)
     };
 
-    // 3) Create a transport and send email
+    // 3) Create a transport and send emails
     await this.newTransport().sendMail(mailOptions);
   }
 
   async sendWelcome() {
     await this.send('welcome', 'Welcome to the Natours Family!');
+    console.log("EMAIL SENT :D ");
   }
 
   async sendPasswordReset() {
