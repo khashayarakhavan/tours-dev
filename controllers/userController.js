@@ -5,31 +5,31 @@ const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const factory = require('./handlerFactory');
 
-// const multerStorage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, 'public/img/users');
-//   },
-//   filename: (req, file, cb) => {
-//     const ext = file.mimetype.split('/')[1];
-//     cb(null, `user-${req.user.id}-${Date.now()}.${ext}`);
-//   }
-// });
-const multerStorage = multer.memoryStorage();
+const multerStorage = multer.diskStorage({ // how to save files
+  destination: (req, file, cb) => { 
+    cb(null, 'public/img/users'); // no error / save in the preferred location
+  },
+  filename: (req, file, cb) => {
+    const ext = file.mimetype.split('/')[1]; // select file type using Mimetype value via file in multer middleware
+    cb(null, `user-${req.user.id}-${Date.now()}.${ext}`); // unique id by user id from Req and current Date to create a filename.
+  }
+});
 
-const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image')) {
-    cb(null, true);
+const multerFilter = (req, file, cb) => { // check if the file type is what we want.
+  if (file.mimetype.startsWith('image')) { // if file type is image
+    cb(null, true);  // no error, image format is `true`
   } else {
-    cb(new AppError('Not an image! Please upload only images.', 400), false);
+    cb(new AppError('Not an image! Please upload only images.', 400), false); // Generate error with AppError and 400 status and `false` for file type validation.
   }
 };
 
 const upload = multer({
-  storage: multerStorage,
+  storage: multerStorage, // pass options object to multer / specify storage and filter.
   fileFilter: multerFilter
 });
 
-exports.uploadUserPhoto = upload.single('photo');
+exports.uploadUserPhoto = upload.single('photo'); // Upload only single files in the field `photo`
+// const multerStorage = multer.memoryStorage();
 
 exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) return next();
@@ -59,6 +59,10 @@ exports.getMe = (req, res, next) => {
 };
 
 exports.updateMe = catchAsync(async (req, res, next) => {
+  
+  console.log("Hello. This is BODY...!",req.body);
+  console.log("    Hello. This is File :-O ",req.file);
+
   // 1) Create error if user POSTs password data
   if (req.body.password || req.body.passwordConfirm) {
     return next(
@@ -71,9 +75,9 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   // 2) Filtered out unwanted fields names that are not allowed to be updated
   const filteredBody = filterObj(req.body, 'name', 'email');
-  if (req.file) filteredBody.photo = req.file.filename;
+  if (req.file) filteredBody.photo = req.file.filename; // add `photo` field to filteredBody object which is then added to DB
 
-  // 3) Update user document
+  // 3) Update user document by passing filteredBody along with user ID.
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
     runValidators: true

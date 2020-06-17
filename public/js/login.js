@@ -37,8 +37,14 @@ export const logout = async () => {
       url: 'http://localhost:3000/api/v1/users/logout'
     });
 
-    if ((res.data.status = 'success'))  showAlert('success','Logged out successfully'); location.reload(true); // automatically refresh page from Server not from browser cache.
-  } 
+    if (res.data.status = 'success') {
+      showAlert('success', 'Logged out successfully'); 
+      window.setTimeout(() => {
+        location.assign('/'); // go to root directory automatically 
+      }, 500); // after 0.5second }
+      //  location.reload(true); // automatically refresh page from Server not from browser cache.
+    } 
+  }
   catch (err) { // error if there is no internet connection 
     console.log(err.response);
     showAlert('error', 'Error logging out! Try again.');
