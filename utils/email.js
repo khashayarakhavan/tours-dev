@@ -1,37 +1,44 @@
+/* eslint-disable */
 const nodemailer = require('nodemailer');
 const pug = require('pug');
 const htmlToText = require('html-to-text');
+const mailGun = require('nodemailer-mailgun-transport');
+const keys = require('../config/keys');
+
+const auth = {
+  auth: {
+    api_key: keys.sendMailGunKey,
+    domain: keys.sendMailGunDomain
+  }
+};
 
 module.exports = class Email {
   constructor(user, url) {
     this.to = user.email;
     this.firstName = user.name.split(' ')[0];
     this.url = url;
-    this.from = `Jonas Schmedtmann <${process.env.EMAIL_FROM}>`;
+    this.from = `AftoflBig5 <${process.env.EMAIL_FROM}>`;
   }
 
-  newTransport() {
+  newTransport() { // Define the SMTP transporter -->
+    // MailGun
     if (process.env.NODE_ENV === 'production') {
-      // Sendgrid
+      console.log('Email is in Production');
+      return nodemailer.createTransport(mailGun(auth));
+    } 
+    else {
+      console.log('Email is in Development');
       return nodemailer.createTransport({
-        service: 'SendGrid',
+        host: keys.mailTrapHost,
+        port: keys.mailTrapPort,
         auth: {
-          user: process.env.SENDGRID_USERNAME,
-          pass: process.env.SENDGRID_PASSWORD
+          user: keys.mailTrapUsername,
+          pass: keys.mailTrapPassword
         }
       });
     }
-
-    return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
-  }
-
+  } // <-- SMTP Transporter
+    
   // Send the actual email
   async send(template, subject) {
     // 1) Render HTML based on a pug template
@@ -51,12 +58,20 @@ module.exports = class Email {
     };
 
     // 3) Create a transport and send emails
-    await this.newTransport().sendMail(mailOptions);
+    await this.newTransport().sendMail(mailOptions, function(err, data) { // CallBack function for sending email
+        if (err) { 
+          console.log('the error is : ', err); // Log if there is any error
+          
+        } else {
+          console.log('Email sent with Nodemailer via MailTrap Service', data); // log the response from mail service to show the result of sent emails.
+          
+        }
+      });
   }
 
   async sendWelcome() {
     await this.send('welcome', 'Welcome to the Natours Family!');
-    console.log("EMAIL SENT :D ");
+    // console.log("EMAIL SENT :D ");
   }
 
   async sendPasswordReset() {
