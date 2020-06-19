@@ -1,5 +1,5 @@
 /* Stripe returns a function. initiate it with the secret key */
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY, {apiVersion: ''});
 
 const Tour = require('../models/tourModel');
 const User = require('../models/userModel');
@@ -75,7 +75,7 @@ exports.webhookCheckout = (req, res, next) => {
     event = stripe.webhooks.constructEvent(
       req.body, // which comes directly from Stripe in RAW format and parsed by bodyParser
       signature, // which is in the header
-      `${process.env.STRIPE_WEBHOOK_SECRET}`); // which is the key in our secure vault.
+      `${process.env.STRIPE_WEBHOOK_KEY}`); // which is the key in our secure vault.
       console.log('here is the event :-) !', event);
   }
   catch (err) {
