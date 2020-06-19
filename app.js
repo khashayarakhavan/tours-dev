@@ -27,8 +27,17 @@ app.enable('trust proxy'); // trust proxies e.x. Heroku platfrom, Firebase & suc
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
-// 1) GLOBAL MIDDLEWARES
+// We use a seperate route before parsing data with `express.json` bz Stripe forces us 
+// to use a non-json or so called `raw` parsing using express.raw 
+// or you can use `bodyParser.raw` method from body-parser NPM package to do the same job.
+// Stripe webhook, BEFORE body-parser, because stripe needs the body as stream
+app.post( 
+  '/webhook-checkout',
+  bodyParser.raw({ type: 'application/json' }),
+  bookingController.webhookCheckout
+);
 
+// 1) GLOBAL MIDDLEWARES
 // Implement CORS
 app.use(cors()); // Enable Cross-Origin-Resource-Sharing for all incoming requests.
 // Add header to req: Access-Control-Allow-Origin *
@@ -67,16 +76,6 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again in an hour!'
 });
 app.use('/api', limiter);
-
-// We use a seperate route before parsing data with `express.json` bz Stripe forces us 
-// to use a non-json or so called `raw` parsing using express.raw 
-// or you can use `bodyParser.raw` method from body-parser NPM package to do the same job.
-// Stripe webhook, BEFORE body-parser, because stripe needs the body as stream
-app.post( 
-  '/webhook-checkout',
-  bodyParser.raw({ type: 'application/json' }),
-  bookingController.webhookCheckout
-);
 
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' })); // parse data from body 
