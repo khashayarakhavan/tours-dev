@@ -75,7 +75,7 @@ exports.webhookCheckout = (req, res, next) => {
     event = stripe.webhooks.constructEvent(
       req.body, // which comes directly from Stripe in RAW format and parsed by bodyParser
       signature, // which is in the header
-      process.env.STRIPE_WEBHOOK_SECRET); // which is in our secure vault.
+      `${process.env.STRIPE_WEBHOOK_SECRET}`); // which is the key in our secure vault.
       console.log('here is the event :-) !', event);
   }
   catch (err) {
