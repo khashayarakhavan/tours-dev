@@ -83,7 +83,7 @@ exports.webhookCheckout = (req, res, next) => {
   if (event.type === 'checkout.session.completed') { // check if it was from a successfull payment.
     createBookingCheckoutWebhook(event.data.object); // sending session object from `event` variable to create a booking in DB
   }
-  res.status(200).json({ received: true });
+  res.status().json({ received: true });
 };
 
 exports.createBooking = factory.createOne(Booking);
