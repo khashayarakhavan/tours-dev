@@ -68,7 +68,9 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// We use a seperate route before parsing data with `express.json` bz Stripe forces us to use a non-json or so called `raw` parsing using express.raw or you can use Bodyparser.raw method from body-parser NPM package to do the same job.
+// We use a seperate route before parsing data with `express.json` bz Stripe forces us 
+// to use a non-json or so called `raw` parsing using express.raw 
+// or you can use `bodyParser.raw` method from body-parser NPM package to do the same job.
 // Stripe webhook, BEFORE body-parser, because stripe needs the body as stream
 app.post( 
   '/webhook-checkout',

@@ -5,7 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
 exports.alerts = (req,res,next) => {
-  const {alert} = req.query;
+  const {alert} = req.query; // in the query string of URL
   if (alert === 'booking') {
     res.locals.alert = "Your booking was successful \n if your booking is doesn\'t show up here. Please check again later.";
   }

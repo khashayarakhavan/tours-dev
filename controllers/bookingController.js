@@ -15,14 +15,16 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   // 2) Create checkout session
   const serverSession = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
-    // In development we can use the following trick to read query parameters from Stripe checkout process.
+    // DEV: In development we can use the following trick to read query parameters from Stripe checkout process.
 
-    success_url: `${req.protocol}://${req.get('host')}/my-tours/?tour=${
-      req.params.tourId
-    }&user=${req.user.id}&price=${tour.price}`,
+    // success_url: `${req.protocol}://${req.get('host')}/my-tours/?tour=${
+    //   req.params.tourId
+    // }&user=${req.user.id}&price=${tour.price}`,
 
-    // In Production: use the following strategy.
-    // success_url: `${req.protocol}://${req.get('host')}/my-tours/?alert=booking`, /* use alert method in query to triger alerts using JS. */
+    // Prod: In Production: use the following strategy.
+    success_url: `${req.protocol}://${req.get(
+      'host'
+    )}/my-tours/?alert=booking` /* use alert method in query to triger alerts using JS. */,
     cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
     customer_email: req.user.email,
     client_reference_id: req.params.tourId,
@@ -30,7 +32,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
       {
         name: `${tour.name} Tour`,
         description: tour.summary,
-        images: [`https://image.freepik.com/free-vector/tour-london-england-famous-landmarks-europe-paper-cut_49537-35.jpg`],
+        images: [`${req.protocol}://${req.get('host')}/img/tours/${tour.imageCover}`],
         amount: tour.price * 100,
         currency: 'usd',
         quantity: 1
@@ -45,7 +47,8 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   });
 });
 
-// This is only TEMPORARY, because it's UNSECURE: everyone can make bookings without paying
+// DEV: This is only TEMPORARY for development testing,
+// because it's UNSECURE: everyone can make bookings without paying.
 exports.createBookingCheckout = catchAsync(async (req, res, next) => {
   const { tour, user, price } = req.query;
 
@@ -55,10 +58,12 @@ exports.createBookingCheckout = catchAsync(async (req, res, next) => {
   res.redirect(req.originalUrl.split('?')[0]);
 });
 
+// <-- Dev: create the booking after successfull payment from Stripe success URL callback.
+
 const createBookingCheckoutWebhook = async session => {
   const tour = session.client_reference_id;
   const user = (await User.findOne({ email: session.customer_email })).id;
-  const price = session.display_items[0].amount / 100;
+  const price = session.display_items[0].amount / 100; // amount in Dollars not Cents, so divide it by 100.
   await Booking.create({ tour, user, price });
 };
 
@@ -67,16 +72,16 @@ exports.webhookCheckout = (req, res, next) => {
   let event; // block variable 
   try {  // validate data using signature and secret
     event = stripe.webhooks.constructEvent(
-      req.body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET);
+      req.body, // which comes directly from Stripe in RAW format and parsed by bodyParser
+      signature, // which is in the header
+      process.env.STRIPE_WEBHOOK_SECRET); // which is in our secure vault.
   }
   catch (err) {
     return res.status(400).send(`Webhook error: ${err.message}`);
   }
 
-  if (event.type === 'checkout.session.completed') {
-    createBookingCheckoutWebhook(event.data.object);
+  if (event.type === 'checkout.session.completed') { // check if it was from a successfull payment.
+    createBookingCheckoutWebhook(event.data.object); // sending session object from `event` variable to create a booking in DB
   }
   res.status(200).json({ received: true });
 };
