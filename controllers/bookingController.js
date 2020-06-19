@@ -68,6 +68,7 @@ const createBookingCheckoutWebhook = async session => {
 };
 
 exports.webhookCheckout = (req, res, next) => {
+  console.log('Hello from webHook receiver !');
   const signature = req.headers['stripe-signature']; // verify it is from Stripe.
   let event; // block variable 
   try {  // validate data using signature and secret
@@ -75,8 +76,10 @@ exports.webhookCheckout = (req, res, next) => {
       req.body, // which comes directly from Stripe in RAW format and parsed by bodyParser
       signature, // which is in the header
       process.env.STRIPE_WEBHOOK_SECRET); // which is in our secure vault.
+      console.log('here is the event :-) !', event);
   }
   catch (err) {
+    console.log('here is the error :-( !', err);
     return res.status(400).send(`Webhook error: ${err.message}`);
   }
 
