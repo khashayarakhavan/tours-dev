@@ -8,7 +8,7 @@ header.header
       a.nav__el.nav__el--logout Log out
       a.nav__el(href='/me')
         
-        img.nav__user-img(src=`${user.photo ? `/img/users/${user.photo}` : `/img/users/b.png`}`)
+        img.nav__user-img(src=`/img/users/${user.photo}`)
         //- img.nav__user-img(src=`/img/users/${user.photo}` alt=`Photo of ${user.name}`)
         span= user.name.split(' ')[0] /* split only first name of user using split by space function. */
         
