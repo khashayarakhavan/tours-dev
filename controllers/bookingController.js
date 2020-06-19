@@ -81,6 +81,7 @@ exports.webhookCheckout = (req, res, next) => {
   }
 
   if (event.type === 'checkout.session.completed') { // check if it was from a successfull payment.
+    console.log('this is event data', event.data);
     createBookingCheckoutWebhook(event.data.object); // sending session object from `event` variable to create a booking in DB
   }
   res.status().json({ received: true });
