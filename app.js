@@ -8,7 +8,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
-const compression = require('compression');.
+const compression = require('compression');
 const cors = require('cors');
 
 const AppError = require('./utils/appError');
@@ -43,11 +43,11 @@ app.use(cors()); // Enable Cross-Origin-Resource-Sharing for all incoming reques
 // }));
 
 // respond to options request to non-simple/preflied requests other than `get` & `post`
-// like `delete` or `patch` 
+// like `delete` or `patch`
 app.options('*', cors());
 
 // allow specific routes protection from non-simple requests
-app.options('/api/v1/tours/:id', cors());
+// app.options('/api/v1/tours/:id', cors());
 
 // Serving static files
 app.use(express.static(path.join(__dirname, 'public')));
