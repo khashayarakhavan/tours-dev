@@ -22,8 +22,6 @@ const bookingController = require('./controllers/bookingController');
 
 const app = express();
 
-app.enable('trust proxy'); // trust proxies e.x. Heroku platfrom, Firebase & suchlike
-
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -35,8 +33,9 @@ app.post(
   '/webhook-checkout',
   bodyParser.raw({ type: 'application/json' }),
   bookingController.webhookCheckout
-);
-
+  );
+  
+app.enable('trust proxy'); // trust proxies e.x. Heroku platfrom, Firebase & suchlike
 // 1) GLOBAL MIDDLEWARES
 // Implement CORS
 app.use(cors()); // Enable Cross-Origin-Resource-Sharing for all incoming requests.
