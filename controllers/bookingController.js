@@ -1,4 +1,6 @@
+/* Stripe returns a function. initiate it with the secret key */
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const Tour = require('../models/tourModel');
 const User = require('../models/userModel');
 const Booking = require('../models/bookingModel');
@@ -11,16 +13,16 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   console.log(tour);
 
   // 2) Create checkout session
-  const session = await stripe.checkout.sessions.create({
+  const serverSession = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     // In development we can use the following trick to read query parameters from Stripe checkout process.
 
-    // success_url: `${req.protocol}://${req.get('host')}/my-tours/?tour=${
-    //   req.params.tourId
-    // }&user=${req.user.id}&price=${tour.price}`,
+    success_url: `${req.protocol}://${req.get('host')}/my-tours/?tour=${
+      req.params.tourId
+    }&user=${req.user.id}&price=${tour.price}`,
 
     // In Production: use the following strategy.
-    success_url: `${req.protocol}://${req.get('host')}/my-tours/?alert=booking`,
+    // success_url: `${req.protocol}://${req.get('host')}/my-tours/?alert=booking`, /* use alert method in query to triger alerts using JS. */
     cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
     customer_email: req.user.email,
     client_reference_id: req.params.tourId,
@@ -28,7 +30,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
       {
         name: `${tour.name} Tour`,
         description: tour.summary,
-        images: [`${req.protocol}://${req.get('host')}/img/tours/${tour.imageCover}`],
+        images: [`https://image.freepik.com/free-vector/tour-london-england-famous-landmarks-europe-paper-cut_49537-35.jpg`],
         amount: tour.price * 100,
         currency: 'usd',
         quantity: 1
@@ -39,19 +41,19 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   // 3) Create session as response
   res.status(200).json({
     status: 'success',
-    session
+    serverSession
   });
 });
 
-// exports.createBookingCheckout = catchAsync(async (req, res, next) => {
-//   // This is only TEMPORARY, because it's UNSECURE: everyone can make bookings without paying
-//   const { tour, user, price } = req.query;
+// This is only TEMPORARY, because it's UNSECURE: everyone can make bookings without paying
+exports.createBookingCheckout = catchAsync(async (req, res, next) => {
+  const { tour, user, price } = req.query;
 
-//   if (!tour && !user && !price) return next();
-//   await Booking.create({ tour, user, price });
+  if (!tour && !user && !price) return next();
+  await Booking.create({ tour, user, price });
 
-//   res.redirect(req.originalUrl.split('?')[0]);
-// });
+  res.redirect(req.originalUrl.split('?')[0]);
+});
 
 const createBookingCheckoutWebhook = async session => {
   const tour = session.client_reference_id;

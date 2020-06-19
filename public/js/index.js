@@ -5,7 +5,7 @@ import { login, logout } from './login';
 import { signUp } from './signUp';
 import { updateSettings } from './updateSettings';
 import { showAlert } from './alerts';
-// import { bookTour } from './stripe';
+import { bookTour } from './stripe';
 
 // DOM ELEMENTS
 const mapBox = document.getElementById('map');
@@ -92,8 +92,10 @@ if (signUpForm) {
 if (bookBtn) {
   bookBtn.addEventListener('click', e => {
     e.target.textContent = "Processing...";
-    const { tourId } = e.target.dataset;
-    // bookTour(tourId);
+    /* javascript automatically converts the kebab-cased variables to camelCased variable  */
+    /* so here instead of tour-id we use tourId alongwith ES6 destructuring */
+    const { tourId } = e.target.dataset; 
+    bookTour(tourId);
   });
 }
 

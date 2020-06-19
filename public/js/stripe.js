@@ -1,19 +1,22 @@
 /* eslint-disable */
 import axios from 'axios';
 import { showAlert } from './alerts';
-const stripe = Stripe('pk_test_BUkd0ZXAj6m0q0jMyRgBxNns00PPtgvjjr');
+const stripe = Stripe(`pk_test_51GvgM7Bg5OGP7RJDsP8v6xgwZJJ7Secx9DMgo2AtlsCEZfJjBfndkAe9MrJfGTlrSYBHqTsTOeibT0scv0s8kdzy00IFAFY5aB`);
 
 export const bookTour = async tourId => {
   try {
+    console.log('dalam :D');
     // 1) Get checkout session from API
-    const session = await axios(`/api/v1/bookings/checkout-session/${tourId}`);
+    const clientSession = await axios(`/api/v1/bookings/checkout-session/${tourId}`);
     // console.log(session);
 
-    // 2) Create checkout form + chanre credit card
+    // 2) Send `clientSession` to stripe checkout page to charge the bill.
+    console.log('Hello from redirect to Stripe API !');
     await stripe.redirectToCheckout({
-      sessionId: session.data.session.id
+      sessionId: clientSession.data.serverSession.id
     });
-  } catch (err) {
+  } 
+  catch (err) {
     console.log(err);
     showAlert('error', err);
   }

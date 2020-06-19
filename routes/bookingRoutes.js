@@ -8,6 +8,7 @@ router.use(authController.protect);
 
 router.get('/checkout-session/:tourId', bookingController.getCheckoutSession);
 
+// Restrict the following methods only to some authorised roles.
 router.use(authController.restrictTo('admin', 'lead-guide'));
 
 router
