@@ -21,6 +21,8 @@ const bookingController = require('./controllers/bookingController');
 
 const app = express();
 
+app.enable('trust proxy'); // trust proxies e.x. Heroku platfrom, Firebase & suchlike
+
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
