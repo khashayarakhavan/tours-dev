@@ -1,10 +1,28 @@
 const express = require('express');
+const passport = require('passport');
 const userController = require('./../controllers/userController');
 const authController = require('./../controllers/authController');
 
 const router = express.Router();
 
+// app.post(
+// '/login',
+// passport.authenticate('local', { failureRedirect: '/login' }),
+// function(req, res) {
+//   res.redirect('/');
+// }
+// );
+
 router.post('/signup', authController.signup);
+// router.post('/signupGoogle', authController.signupGoogle);
+
+// router.post(
+//   '/signup',
+//   passport.authenticate('local', { failureRedirect: '/login' }),
+//   function(req, res) {
+//     res.redirect('/');
+//   }
+// );
 router.post('/login', authController.login);
 router.get('/logout', authController.logout);
 

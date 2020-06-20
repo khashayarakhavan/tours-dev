@@ -19,9 +19,9 @@ const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
-const APIRouter = require('./routes/authRoutes2');
+// const APIRouter = require('./routes/authRoutes');
 
-const authRouter = require('./routes/APIRoutes');
+// const authRouter = require('./routes/APIRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const viewRouter = require('./routes/viewRoutes');
 const bookingRouter = require('./routes/bookingRoutes');
@@ -29,9 +29,9 @@ const bookingController = require('./controllers/bookingController');
 
 const { log } = console;
 
-require('./utils/passport');
-
 const app = express();
+
+require('./utils/passport');
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
@@ -47,6 +47,8 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 // <-- cookie session
+
+require('./routes/authRoutes')(app);
 
 // We use a seperate route before parsing data with `express.json` bz Stripe forces us
 // to use a non-json or so called `raw` parsing using express.raw
@@ -138,10 +140,10 @@ app.use((req, res, next) => {
 app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
-app.use('/auth', authRouter);
+// app.use('/auth/', authRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/bookings', bookingRouter);
-app.use('/api', APIRouter);
+// app.use('/api/', APIRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

@@ -1,8 +1,5 @@
 const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const keys = require('../config/keys');
-
-const { log } = console;
 
 const User = require('../models/userModel');
 
@@ -25,27 +22,28 @@ passport.use(
       proxy: true
     },
     async (accessToken, refreshToken, profile, done) => {
-      existingUser = await User.findOne({ email: profile._json.email });
+      existingUser = await User.findOne({ googleID: profile.id });
 
       if (existingUser) {
         // we have record.
-        log('hey bro, welcome back!');
+        console.log('hey bro, welcome back!');
         done(null, existingUser);
       } else {
         // we don't have record
+        console.log(profile);
         const newUser = await User.create({
-          thumbnail: profile._json.picture,
-          googleID: profile.id,
           name: profile.displayName,
-          email: profile._json.email
+          thumbnail: profile._json.picture,
+          email: profile._json.email.split(',')[0],
+          googleID: profile.id
         });
-        log('This is our User :D ... ', newUser);
+        console.log('This is our User :D ... ',newUser);
         done(null, newUser);
       }
 
-      log('access Token:', accessToken);
-      log('refresh Token', refreshToken);
-      log('profile:', profile);
+      console.log('access Token:', accessToken);
+      console.log('refresh Token', refreshToken);
+      console.log('profile:', profile);
     }
   )
 );
