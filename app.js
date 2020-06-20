@@ -11,30 +11,53 @@ const cookieParser = require('cookie-parser');
 const compression = require('compression');
 const cors = require('cors');
 
+const cookieSession = require('cookie-session');
+const passport = require('passport');
+const keys = require('./config/keys');
+
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const APIRouter = require('./routes/authRoutes2');
+
+const authRouter = require('./routes/APIRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const viewRouter = require('./routes/viewRoutes');
 const bookingRouter = require('./routes/bookingRoutes');
 const bookingController = require('./controllers/bookingController');
+
+const { log } = console;
+
+require('./utils/passport');
 
 const app = express();
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
-// We use a seperate route before parsing data with `express.json` bz Stripe forces us 
-// to use a non-json or so called `raw` parsing using express.raw 
+//Cookie session -->
+app.use(bodyParser.json());
+app.use(
+  cookieSession({
+    maxAge: 60 * 60 * 24 * 1000,
+    keys: [keys.cookieKey]
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+// <-- cookie session
+
+// We use a seperate route before parsing data with `express.json` bz Stripe forces us
+// to use a non-json or so called `raw` parsing using express.raw
 // or you can use `bodyParser.raw` method from body-parser NPM package to do the same job.
 // Stripe webhook, BEFORE body-parser, because stripe needs the body as stream
-app.post( 
+app.post(
   '/webhook-checkout',
   bodyParser.raw({ type: 'application/json' }),
   bookingController.webhookCheckout
-  );
-  
+);
+
 app.enable('trust proxy'); // trust proxies e.x. Heroku platfrom, Firebase & suchlike
 // 1) GLOBAL MIDDLEWARES
 // Implement CORS
@@ -42,9 +65,9 @@ app.use(cors()); // Enable Cross-Origin-Resource-Sharing for all incoming reques
 // Add header to req: Access-Control-Allow-Origin *
 
 // Only allow some specific origins
-// e.x. if client is: www.aio.io 
+// e.x. if client is: www.aio.io
 // and API is: api.aio.io
-// or want to give access to only special domains to use your service 
+// or want to give access to only special domains to use your service
 
 // app.use(cors({
 //   origin: 'https://www.aio.io'
@@ -77,7 +100,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // Body parser, reading data from body into req.body
-app.use(express.json({ limit: '10kb' })); // parse data from body 
+app.use(express.json({ limit: '10kb' })); // parse data from body
 app.use(express.urlencoded({ extended: true, limit: '10kb' })); // parse data from urlencoded forms html requests.
 app.use(cookieParser()); // parse data from cookies
 
@@ -101,13 +124,13 @@ app.use(
   })
 );
 
-// AJAX API requests compression 
+// AJAX API requests compression
 app.use(compression());
 
 // Test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-  console.log(req.cookies);
+  log(req.cookies);
   next();
 });
 
@@ -115,8 +138,10 @@ app.use((req, res, next) => {
 app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/auth', authRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/bookings', bookingRouter);
+app.use('/api', APIRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

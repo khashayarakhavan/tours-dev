@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
+const { log } = console;
+
 process.on('uncaughtException', err => {
-  console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-  console.log(err.name, err.message);
+  log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  log(err.name, err.message);
   process.exit(1);
 });
 
@@ -22,24 +24,24 @@ mongoose
     useFindAndModify: false,
     useUnifiedTopology: true 
   })
-  .then(() => console.log('DB connection successful!'));
+  .then(() => log('DB connection successful!'));
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
-  console.log(`App running on port ${port}...`);
+  log(`App running on port ${port}...`);
 });
 
 process.on('unhandledRejection', err => {
-  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
-  console.log(err.name, err.message);
+  log('UNHANDLED REJECTION! 💥 Shutting down...');
+  log(err.name, err.message);
   server.close(() => { // close the server right now.
     process.exit(1); // manually shutdown the application.
   });
 });
 
 process.on('SIGTERM', () => {
-  console.log('SIGTERM RECEIVED 👋 Shutting down gracefully...');
+  log('SIGTERM RECEIVED 👋 Shutting down gracefully...');
   server.close(() => { // Allows all the pending request to get processed completely before shutdown.
-    console.log('Process Terminated! 😢');
+    log('Process Terminated! 😢');
   });
 });

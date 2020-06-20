@@ -8,6 +8,16 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please tell us your name!']
   },
+  googleID: {
+    type: String
+  },
+  thumbnail: {
+    type: String
+  },
+  credits: {
+    type: Number,
+    default: 0
+  },
   email: {
     type: String,
     required: [true, 'Please provide your email'],
@@ -15,8 +25,8 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     validate: [validator.isEmail, 'Please provide a valid email']
   },
-  photo: { 
-    type: String, 
+  photo: {
+    type: String,
     default: 'default.jpg' // define a default photo for users created just now.
   },
   role: {

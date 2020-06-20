@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const passport = require('passport');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
@@ -256,4 +257,14 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 
   // 4) Log user in, send JWT
   createSendToken(user, 200, req, res);
+});
+
+exports.oauthGoogle = catchAsync(async (req, res, next) => {
+  passport.authenticate('google', {
+    scope: ['profile', 'email']
+  });
+});
+
+exports.oauthGoogleCallback = catchAsync(async (req, res, next) => {
+  passport.authenticate('google');
 });
