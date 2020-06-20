@@ -8,11 +8,11 @@ const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
 
 exports.getCheckoutSession = catchAsync(async (req, res, next) => {
-  // 1) Get the currently booked tour
+  // 1)a) Get the currently booked tour
   const tour = await Tour.findById(req.params.tourId);
   console.log(tour);
 
-  // 2) Create checkout session
+  // 1)b) Define the stripe variables.
   const envUrl =
     process.env.NODE_ENV === 'production'
       ? `${req.protocol}://${req.get('host')}/my-tours/?alert=booking`
@@ -20,6 +20,12 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
           req.params.tourId
         }&user=${req.user.id}&price=${tour.price}&alert=shaja`;
 
+  const images =
+    process.env.NODE_ENV === 'production'
+      ? `${req.protocol}://${req.get('host')}/img/tours/${tour.imageCover}`
+      : `https://st2.depositphotos.com/1641036/10791/v/950/depositphotos_107916462-stock-illustration-europe-landmarks-and-favorite-travel.jpg`;
+
+  // 2) Create checkout session
   const serverSession = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     // DEV: In development we can use the following trick to read query parameters from Stripe checkout process.
@@ -56,8 +62,8 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
 // DEV: This is only TEMPORARY for development testing,
 // because it's UNSECURE: everyone can make bookings without paying.
 exports.createBookingCheckoutDEV = catchAsync(async (req, res, next) => {
-  console.log('Hello from booking checkout :DEV ');
   if (process.env.NODE_ENV === 'production') return next();
+  console.log('Hello from booking checkout :DEV ');
   const { tour, user, price } = req.query;
 
   if (!tour || !user || !price) return next();
