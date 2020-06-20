@@ -1,27 +1,24 @@
+const express = require('express');
 const passport = require('passport');
+const viewsController = require('../controllers/viewsController');
+const authController = require('../controllers/authController');
 
-module.exports = app => {
-  app.get(
-    '/auth/google',
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-  );
+const router = express.Router();
 
-  // callback route for google to redirect to + using passport middleWare to add req.user to the request.
-  app.get(
-    '/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/sign-up' }),
-    function(req, res) {
-      // Successful authentication, redirect home.
-      res.redirect('/');
-    }
-  );
+// router.use(viewsController.alerts); // always check for alerts in queries.
 
-  app.get('/api/logout', (req, res) => {
-    req.logout();
-    res.redirect('/');
-  });
+router.get(
+  '/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
 
-  app.get('/api/current_user', (req, res) => {
-    res.send(req.user);
-  });
-};
+// callback route for google to redirect to + using passport middleWare to add req.user to the request.
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { failureRedirect: '/sign-up' }),
+  authController.signupGoogle
+  // authController.protect,
+  // viewsController.getAccount
+);
+
+module.exports = router;

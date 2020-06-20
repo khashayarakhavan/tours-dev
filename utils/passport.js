@@ -7,12 +7,14 @@ const { log } = console;
 const User = require('../models/userModel');
 
 passport.serializeUser(function(user, done) {
-  done(null, user.id);
+  log('Hello from Serilize :-* ');
+  done(null, user._id);
 });
 
-passport.deserializeUser((id, done) => {
-  User.findById(id).then(user => {
-    done(null, user);
+passport.deserializeUser((_id, done) => {
+  User.findById(_id).then(userFromPassport => {
+    log('Hello from DeSerilize, the added parameter is:-* ', userFromPassport);
+    done(null, userFromPassport);
   });
 });
 
@@ -25,27 +27,30 @@ passport.use(
       proxy: true
     },
     async (accessToken, refreshToken, profile, done) => {
+      log('Here is the PROFILE received from Google:', profile);
       existingUser = await User.findOne({ email: profile._json.email });
 
       if (existingUser) {
         // we have record.
-        log('hey bro, welcome back!');
+        log('hey bro, welcome back! We are in existing User Passport.js');
         done(null, existingUser);
       } else {
+        log('I am in ELSE :-o :-D');
         // we don't have record
         const newUser = await User.create({
-          thumbnail: profile._json.picture,
-          googleID: profile.id,
-          name: profile.displayName,
-          email: profile._json.email
+          name: profile._json.name,
+          email: profile._json.email,
+          photoWeb: profile._json.picture,
+          googleID: profile._json.sub
         });
         log('This is our User :D ... ', newUser);
         done(null, newUser);
       }
-
-      log('access Token:', accessToken);
-      log('refresh Token', refreshToken);
-      log('profile:', profile);
     }
+
+    // log('access Token:', accessToken);
+    // log('refresh Token', refreshToken);
+    // log('profile:', profile);
+    // }
   )
 );

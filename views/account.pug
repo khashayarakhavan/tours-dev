@@ -42,7 +42,8 @@ block content
               label.form__label(for='email') Email address
               input#email.form__input(type='email', value=`${user.email}`, required, name='email')
             .form__group.form__photo-upload
-              img.form__user-photo(src=`/img/users/${user.photo}`, alt='User photo')
+              - const source=  user.photoWeb ? `${user.photoWeb}` : `img/users/${user.photo}`;
+              img.form__user-photo(src=`${source}`, alt='User photo')
               input.form__upload(type='file', accept='image/*', id='photo', name='photo') 
               //- Define the mimeType of file and which formats we accept
               label(for='photo') Choose new photo

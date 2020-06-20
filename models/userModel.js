@@ -29,6 +29,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'default.jpg' // define a default photo for users created just now.
   },
+  createdAt: {
+    type: Date,
+    default: Date.now()
+  },
+  photoWeb: {
+    type: String
+  },
   role: {
     type: String,
     enum: ['user', 'guide', 'lead-guide', 'admin'],
@@ -41,7 +48,7 @@ const userSchema = new mongoose.Schema({
     select: false
   },
   passwordConfirm: {
-    type: String,
+    type: String
     // required: [true, 'Please confirm your password'],
     // validate: {
     //   // This only works on CREATE and SAVE!!!

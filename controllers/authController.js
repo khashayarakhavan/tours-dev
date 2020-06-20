@@ -15,35 +15,35 @@ const signToken = id => {
   });
 };
 
-const createSendToken = (user, statusCode, req, res) => {
+const createSendToken = (user, statusCode, req, res, next) => {
   const token = signToken(user._id);
   const cookieOptions = {
     // here we create the JWT cookie.
     expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000 // expires after 24Hours from now.
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 1000 // expires after 24Hours from now.
     ),
     httpOnly: true, // Important Security: prevents any alternation and change/destroy/delete of cookie in the browser from hackers.
     secure: req.secure || req.headers['x-forwarded-proto'] === 'https'
   };
 
   /* Note on the following line:
-     if our request comes from secure protocol or it is forwarded from Heroku internal proxy
-     then add cookie secure option to the options object so that cookies can only be sent through a secure protocol.
+  if our request comes from secure protocol or it is forwarded from Heroku internal proxy
+  then add cookie secure option to the options object so that cookies can only be sent through a secure protocol.
   */
   // if (req.secure || req.headers['x-forwarded-proto'] === 'https') cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions); // sending cookie with token and its options to the browser.
 
   // Remove password from output
-  user.password = undefined;
+  // user.password = undefined;
 
-  res.status(statusCode).json({
-    status: 'success',
-    token,
-    data: {
-      user
-    }
-  });
+  // res.status(statusCode).json({
+  //   status: 'success',
+  //   token,
+  //   data: {
+  //     user
+  //   }
+  // });
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
@@ -57,30 +57,41 @@ exports.signup = catchAsync(async (req, res, next) => {
   });
 
   const url = `${req.protocol}://${req.get('host')}/me`;
-  console.log(url);
+  log(url);
   await new Email(newUser, url).sendWelcome();
 
   createSendToken(newUser, 201, req, res);
 });
 
 exports.signupGoogle = catchAsync(async (req, res, next) => {
-  log('Here is the Sign Up Google :D ');
-  log(req);
-  // const newUser = await User.create({
-  //   name: req.body.name,
-  //   email: req.body.email,
-  //   password: req.body.password,
-  //   passwordConfirm: req.body.passwordConfirm
-  // });
+  log('The User is: ', req.user);
+  const userToCookie = req.user;
+  try {
+    createSendToken(userToCookie, 201, req, res);
+    res.redirect('/me');
+    // existingUser = await User.findOne({ email: req.user._json.email });
+    // log('hey bro, welcome back! We are in existing User authController.js');
+    // log('Existing User is: ', r);
 
-  // createSendToken(newUser, 201, req, res);
-  // });
-
-  const url = `${req.protocol}://${req.get('host')}/me`;
-  console.log(url);
-  // await new Email(newUser, url).sendWelcome();
-
-  // createSendToken(newUser, 201, req, res);
+    // if (existingUser) {
+    // we have record.
+    // log('The existing USER has been previously added to the req using passport', req.user);
+    // }
+    // log('Welcome to Sign Up Google/try/else in authController.js :D ');
+    // log('The PROFILE inside request is: ', req.profile);
+    // const newUser = await User.create({
+    //   name: req.user._json.name,
+    //   email: req.user._json.email,
+    //   photoWeb: req.user._json.picture,
+    //   googleID: req.user._json.sub
+    // });
+    // const url = `${req.protocol}://${req.get('host')}/me`;
+    // console.log(url);
+    // await new Email(newUser, url).sendWelcome()
+  } catch (err) {
+    log('Error from SignUp Google in authController.js', err);
+    res.redirect('/login');
+  }
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -102,12 +113,35 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 exports.logout = (req, res) => {
+  log('The Session is : ', req.session);
+  req.logout();
+  // req.session.destroy(err => {
+  //   res.clearCookie('jwt');
+  //   // Don't redirect, just print text
+  //   res.send('Logged out');
+  // });
+  
+  // log('The list of all cookies', document.cookie);
+  // req.logout();
+
+  // req.session.destroy(function(err) {
+  //   if (!err) {
+  //     res
+  //       .status(200)
+  //       .clearCookie('jwt', { path: '/' })
+  //       .json({ status: 'success' });
+  //   } else {
+  //     // handle error case...
+  //   }
+  // });
+
   // creating a new JWT cookie to overwrite the current user's cookie, thus logging him out with empty token.
   res.cookie('jwt', 'loggedout', {
     // Use exactly same name to overwrite, but without token.
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true
   });
+  
   res.status(200).json({ status: 'success' }); // successfull log-out process with success message.
 };
 
@@ -286,24 +320,24 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, req, res);
 });
 
-exports.oauthGoogle = catchAsync(async (req, res, next) => {
-  log('This is request: ', req);
-  try {
-    passport.authenticate('google', {
-      scope: ['profile', 'email']
-    });
-  } catch (err) {
-    log('Hello from after passport :D');
-    log(err);
-  }
-});
+// exports.oauthGoogle = catchAsync(async (req, res, next) => {
+//   log('This is request: ', req);
+//   try {
+//     passport.authenticate('google', {
+//       scope: ['profile', 'email']
+//     });
+//   } catch (err) {
+//     log('Hello from after passport :D');
+//     log(err);
+//   }
+// });
 
-exports.oauthGoogleCallback = catchAsync(async (req, res, next) => {
-  log('This is callBack req: ', req);
-  try {
-    passport.authenticate('google');
-  } catch (err) {
-    log('Hello from callback after passport :D');
-    log(err);
-  }
-});
+// exports.oauthGoogleCallback = catchAsync(async (req, res, next) => {
+//   log('This is callBack req: ', req);
+//   try {
+//     passport.authenticate('google');
+//   } catch (err) {
+//     log('Hello from callback after passport :D');
+//     log(err);
+//   }
+// });

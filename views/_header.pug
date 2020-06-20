@@ -12,7 +12,8 @@ header.header
           span= user.name.split(' ')[0] /* split only first name of user using split by space function. */
         
         else
-          img.nav__user-img(src=`/img/users/default.jpg` alt=`Photo of ${user.name}`)
+          - const source=  user.photoWeb ? `${user.photoWeb}` : `img/users/${user.photo}`;
+          img.nav__user-img(src=`${source}` alt=`Photo of ${user.name}`)
           span= user.name.split(' ')[0] /* split only first name of user using split by space function. */
       //- a.nav__el(href='/auth/google')
       //-   span= `Continue with`
