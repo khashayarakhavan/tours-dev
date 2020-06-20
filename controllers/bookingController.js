@@ -13,6 +13,13 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   console.log(tour);
 
   // 2) Create checkout session
+  const envUrl =
+    process.env.NODE_ENV === 'production'
+      ? `${req.protocol}://${req.get('host')}/my-tours/?alert=booking`
+      : `${req.protocol}://${req.get('host')}/my-tours/?tour=${
+          req.params.tourId
+        }&user=${req.user.id}&price=${tour.price}&alert=shaja`;
+
   const serverSession = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     // DEV: In development we can use the following trick to read query parameters from Stripe checkout process.
@@ -22,9 +29,8 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     // }&user=${req.user.id}&price=${tour.price}`,
 
     // Prod: In Production: use the following strategy.
-    success_url: `${req.protocol}://${req.get(
-      'host'
-    )}/my-tours/?alert=booking` /* use alert method in query to triger alerts using JS. */,
+    success_url: `${envUrl}`,
+    /* use alert method in query to triger alerts using JS. */
     cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
     customer_email: req.user.email,
     client_reference_id: req.params.tourId,
@@ -49,24 +55,29 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
 
 // DEV: This is only TEMPORARY for development testing,
 // because it's UNSECURE: everyone can make bookings without paying.
-exports.createBookingCheckout = catchAsync(async (req, res, next) => {
+exports.createBookingCheckoutDEV = catchAsync(async (req, res, next) => {
+  console.log('Hello from booking checkout :DEV ');
+  if (process.env.NODE_ENV === 'production') return next();
   const { tour, user, price } = req.query;
 
-  if (!tour && !user && !price) return next();
+  if (!tour || !user || !price) return next();
   await Booking.create({ tour, user, price });
-
-  res.redirect(req.originalUrl.split('?')[0]);
+  res.redirect(req.originalUrl.split('?')[0] + `?alert=shaja`);
 });
 
 // <-- Dev: create the booking after successfull payment from Stripe success URL callback.
 
+// Record in DB: Decode information from successfull payment session
 const createBookingCheckoutWebhook = async session => {
-  const tour = session.client_reference_id;
+  const tour = session.client_reference_id; // define the tour id
+
+  // find user using their email address. Then find their userId.
   const user = (await User.findOne({ email: session.customer_email })).id;
-  const price = session.display_items[0].amount / 100; // amount in Dollars not Cents, so divide it by 100.
-  await Booking.create({ tour, user, price });
+  const price = session.display_items[0].amount / 100; // Change the currency to Dollars not Cents, so divide it by 100.
+  await Booking.create({ tour, user, price }); // Record in database to `Booking` model.
 };
 
+// Check incoming webhook from Stripe.
 exports.webhookCheckout = (req, res, next) => {
   console.log('Hello from webHook receiver !');
   const signature = req.headers['stripe-signature']; // verify it is from Stripe.

@@ -99,5 +99,6 @@ if (bookBtn) {
   });
 }
 
-const alertMessage = document.querySelector('body').dataset.alert;
-if (alertMessage) showAlert('success', alertMessage, 20);
+// showing alert from url query.
+const alertMessage = document.querySelector('body').dataset.alert; // read the alert messeage from middleware and set it to a variable.
+if (alertMessage) showAlert('success', alertMessage, 20); // use showAlert to display message and customize it.

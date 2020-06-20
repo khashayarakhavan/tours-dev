@@ -7,7 +7,13 @@ const AppError = require('../utils/appError');
 exports.alerts = (req,res,next) => {
   const {alert} = req.query; // in the query string of URL
   if (alert === 'booking') {
-    res.locals.alert = "CONGRATS! 👍 \n Your booking was successful \n if your booking doesn\'t show up here. Please check again later.";
+    res.locals.alert = // save this string in `alert` variable, which is then accessible through all next middlewares.
+      "CONGRATS! 👍 \n Your booking was successful \n if your booking doesn't show up here. Please check again later.";
+  }
+
+  if (alert === 'shaja') {
+    res.locals.alert = // save this string in `alert` variable, which is then accessible through all next middlewares.
+      "Ich Liebe Dich 👶 AftoflBig5";
   }
 
   next();
