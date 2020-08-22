@@ -17,6 +17,7 @@ const signToken = id => {
 
 const createSendToken = (user, statusCode, req, res, next) => {
   const token = signToken(user._id);
+  console.log('Token is :', token);
   const cookieOptions = {
     // here we create the JWT cookie.
     expires: new Date(
@@ -31,19 +32,38 @@ const createSendToken = (user, statusCode, req, res, next) => {
   then add cookie secure option to the options object so that cookies can only be sent through a secure protocol.
   */
   // if (req.secure || req.headers['x-forwarded-proto'] === 'https') cookieOptions.secure = true;
+  console.log('just wanted to say hi, Im here at createSendToken :-- ');
+
+  res.cookie('jwt', token, cookieOptions); // sending cookie with token and its options to the browser.
+ 
+  // Remove password from output
+  user.password = undefined;
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user
+    }
+  });
+};
+
+const createSendTokenGoogle = (user, statusCode, req, res, next) => {
+  const token = signToken(user._id);
+  console.log('Token is :', token);
+  const cookieOptions = {
+    // here we create the JWT cookie.
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 1000 // expires after 24Hours from now.
+    ),
+    httpOnly: true, // Important Security: prevents any alternation and change/destroy/delete of cookie in the browser from hackers.
+    secure: req.secure || req.headers['x-forwarded-proto'] === 'https'
+  };
+
+  console.log('just wanted to say Gooogle :D, Im here at createSendTokenGoogle');
 
   res.cookie('jwt', token, cookieOptions); // sending cookie with token and its options to the browser.
 
-  // Remove password from output
-  // user.password = undefined;
-
-  // res.status(statusCode).json({
-  //   status: 'success',
-  //   token,
-  //   data: {
-  //     user
-  //   }
-  // });
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
@@ -67,7 +87,7 @@ exports.signupGoogle = catchAsync(async (req, res, next) => {
   log('The User is: ', req.user);
   const userToCookie = req.user;
   try {
-    createSendToken(userToCookie, 201, req, res);
+    createSendTokenGoogle(userToCookie, 201, req, res);
     res.redirect('/me');
     // existingUser = await User.findOne({ email: req.user._json.email });
     // log('hey bro, welcome back! We are in existing User authController.js');
@@ -95,21 +115,28 @@ exports.signupGoogle = catchAsync(async (req, res, next) => {
 });
 
 exports.login = catchAsync(async (req, res, next) => {
+  log('Hi, I am now in login controller :D');
+  log('The User is: ', req.user);
   const { email, password } = req.body;
+  console.log('hello from authController.js');
+  console.log('server: email is:', email);
+  console.log('server: pass is:', password);
 
   // 1) Check if email and password exist
   if (!email || !password) {
     return next(new AppError('Please provide email and password!', 400));
   }
   // 2) Check if user exists && password is correct
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email }).select('+password')
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
 
   // 3) If everything ok, send token to client
+  console.log('here we go, user is :', user);
   createSendToken(user, 200, req, res);
+
 });
 
 exports.logout = (req, res) => {

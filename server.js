@@ -3,11 +3,11 @@ const dotenv = require('dotenv');
 
 const { log } = console;
 
-process.on('uncaughtException', err => {
-  log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-  log(err.name, err.message);
-  process.exit(1);
-});
+// process.on('uncaughtException', err => {
+//   log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+//   log(err.name, err.message);
+//   process.exit(1);
+// });
 
 dotenv.config({ path: './config.env' });
 const app = require('./app');
@@ -26,7 +26,7 @@ mongoose
   })
   .then(() => log('DB connection successful!'));
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3500;
 const server = app.listen(port, () => {
   log(`App running on port ${port}...`);
 });

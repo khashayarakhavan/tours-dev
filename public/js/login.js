@@ -3,7 +3,10 @@ import axios from 'axios';
 import { showAlert } from './alerts';
 
 export const login = async (email, password) => {
-  console.log(' Hello :D ');
+  console.log(' Hello from login.js :D ');
+  console.log('login: email is:',email);
+  console.log('login: password is:',password);
+  
   try {
     const res = await axios({
       method: 'POST',
@@ -13,8 +16,11 @@ export const login = async (email, password) => {
         password
       }
     });
+    
+    console.log('client: response from server is :', res.data);
 
     if (res.data.status === 'success') {
+      console.log('WoooW!!! we did it  :-) ');
       showAlert('success','Logged in successfully');
       window.setTimeout(() => { 
         location.assign('/'); // go to root directory automatically 
@@ -24,6 +30,7 @@ export const login = async (email, password) => {
     
   } 
   catch (err) {
+    console.log('OooOps!!! sth happened :-( ');
     showAlert('error', err.response.data.message); // alert error if sth went wrong
   }
 };

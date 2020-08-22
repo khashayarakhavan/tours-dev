@@ -1,11 +1,11 @@
 /* eslint-disable */
 import '@babel/polyfill'; // Bring newer JS features to older browsers using babel.
-import { displayMap } from './mapbox';
-import { login, logout } from './login';
-import { signUp } from './signUp';
-import { updateSettings } from './updateSettings';
 import { showAlert } from './alerts';
+import { login, logout } from './login';
+import { displayMap } from './mapbox';
+import { signUp } from './signUp';
 import { bookTour } from './stripe';
+import { updateSettings } from './updateSettings';
 
 // DOM ELEMENTS
 const mapBox = document.getElementById('map');
@@ -27,6 +27,10 @@ if (loginForm) {
     e.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
+
+    console.log('hello from index.js in client side :D');
+    console.log('client: email is:',email);
+    console.log('client: password is:',password);
     login(email, password); // use Login function from login.js
   });
 }
