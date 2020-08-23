@@ -24,7 +24,7 @@ mongoose
     useFindAndModify: false,
     useUnifiedTopology: true 
   })
-  .then(() => log('DB connection successful!'));
+  .then(() => log('MongoDb-Atlas connected successfully!'));
 
 const port = process.env.PORT || 3500;
 const server = app.listen(port, () => {

@@ -89,6 +89,8 @@ exports.signupGoogle = catchAsync(async (req, res, next) => {
   try {
     createSendTokenGoogle(userToCookie, 201, req, res);
     res.redirect('/me');
+    const url = `${req.protocol}://${req.get('host')}/me`;
+    await new Email(userToCookie, url).sendWelcome();
     // existingUser = await User.findOne({ email: req.user._json.email });
     // log('hey bro, welcome back! We are in existing User authController.js');
     // log('Existing User is: ', r);

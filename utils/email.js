@@ -5,7 +5,14 @@ const htmlToText = require('html-to-text');
 const mailGun = require('nodemailer-mailgun-transport');
 const keys = require('../config/keys');
 
-const auth = {
+const authProd = {
+  auth: {
+    api_key: keys.sendMailGunKey,
+    domain: keys.sendMailGunDomain
+  }
+};
+
+const authDev = {
   auth: {
     api_key: keys.sendMailGunKey,
     domain: keys.sendMailGunDomain
@@ -19,15 +26,21 @@ module.exports = class Email {
     this.url = url;
     this.from = `AftoflBig5 <${process.env.EMAIL_FROM}>`;
   }
+  
+// :DEV change dev => prod
 
   newTransport() { // Define the SMTP transporter -->
     // MailGun
     if (process.env.NODE_ENV === 'production') {
-      console.log('Email is in Production');
-      return nodemailer.createTransport(mailGun(auth));
-    } 
-    else {
-      console.log('Email is in Development');
+      console.log('📧 Email is in production');
+      return nodemailer.createTransport(mailGun(authProd));
+    } else if (process.env.NODE_ENV === 'development') {
+      console.log('📧 Email is in development');
+      return nodemailer.createTransport(mailGun(authDev));
+    } else {
+      console.log(
+        '📧 Email is using the personal transporter such as Gmail,Hotmail,etc.'
+      );
       return nodemailer.createTransport({
         host: keys.mailTrapHost,
         port: keys.mailTrapPort,
@@ -69,9 +82,10 @@ module.exports = class Email {
       });
   }
 
-  async sendWelcome() {
+  async sendWelcome() 
+   {
     await this.send('welcome', 'Welcome to the Natours Family!');
-    // console.log("EMAIL SENT :D ");
+    console.log("EMAIL SENT :D ");
   }
 
   async sendPasswordReset() {
